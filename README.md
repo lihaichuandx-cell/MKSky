@@ -21,6 +21,28 @@ The project is structured as a Visual Studio solution. The core source code is l
 
 ```text
 .
+# MKSky: A GPU Parallel Skyline Algorithm Based on Morton KD-Tree
+
+This repository contains the official implementation for the paper: **"MKSky: A GPU Parallel Skyline Algorithm Based on Morton KD-Tree"**. 
+
+## 📖 Introduction
+
+Skyline queries play a pivotal role in multi-criteria decision-making. However, existing GPU-parallel algorithms often encounter performance bottlenecks when processing high-dimensional anti-correlated data, primarily due to grid explosion (e.g., in the SkyCell algorithm) or memory access divergence. 
+
+To address these challenges, we propose **MKSky**, a novel parallel algorithm based on implicit spatial partitioning. 
+
+Key components of this framework include:
+* **Morton-order Implicit KD-partitioning (MKD):** Leverages Morton encoding to map high-dimensional space into a one-dimensional contiguous memory layout. It achieves equivalent spatial partitioning through a bitwise XOR mechanism with zero physical tree overhead.
+* **Double-level Chunk-Skipping SFS Engine:** Utilizes local absolute lower bounds to implement region-level pruning, thereby substantially reducing redundant point-to-point comparisons.
+
+Extensive experiments demonstrate that, under the same high-dimensional and large-scale benchmarks, MKSky achieves a speedup of up to approximately two orders of magnitude compared to baseline algorithms like SkyCell and SkyAlign.
+
+## 📂 Project Structure
+
+The project is structured as a Visual Studio solution. The core source code is located in the `jomyal` directory:
+
+```text
+.
 └── jomyal/
     ├── common.h                  # Common definitions and data structures
     ├── data_generator.h          # Synthetic dataset generator for different distributions (Independent, Correlated, Anti-correlated)
@@ -38,6 +60,7 @@ The project is structured as a Visual Studio solution. The core source code is l
     ├── jomyal.vcxproj            # Visual Studio Project file
     ├── jomyal.vcxproj.user       # Visual Studio User specific project settings
     └── vc140.pdb                 # Program database for debugging
+
 
 ```
 
