@@ -62,24 +62,24 @@ The obsolete `current` implementation has been removed.
 
 ## Build
 
-Open `MKSky.sln`, select `Release | x64`, and build the `MKSkyBenchmark`
+Open `MKSky/MKSky.sln`, select `Release | x64`, and build the `MKSkyBenchmark`
 project. From a Visual Studio 2017 x64 Native Tools Command Prompt, the same
 build can be run with:
 
 ```powershell
-MSBuild.exe .\MKSky.sln /m /t:Build /p:Configuration=Release /p:Platform=x64
+MSBuild.exe .\MKSky\MKSky.sln /m /t:Build /p:Configuration=Release /p:Platform=x64
 ```
 
 The executable is generated at:
 
 ```text
-bin\Release\MKSkyBenchmark.exe
+MKSky\bin\Release\MKSkyBenchmark.exe
 ```
 
 ## Run
 
 ```powershell
-.\bin\Release\MKSkyBenchmark.exe --n 1000000 --dim 6 `
+.\MKSky\bin\Release\MKSkyBenchmark.exe --n 1000000 --dim 6 `
   --distribution anti --seed 12345 --warmup 1 --repeat 3 `
   --algorithms mksky,skycell,skyalign --csv results\anti_d6.csv
 ```
@@ -98,7 +98,7 @@ the complete command-line interface.
 
 When the input size is no larger than `--verify-limit`, every selected GPU
 algorithm is checked against the exact CPU skyline index set. See
-`docs/SUBMISSION_PROTOCOL.md` for the frozen experiment and reporting rules.
+`MKSky/docs/SUBMISSION_PROTOCOL.md` for the frozen experiment and reporting rules.
 
 ## Optional experiment script
 
@@ -106,5 +106,5 @@ After building `Release | x64`, run the dimensional comparison from the
 repository root with:
 
 ```powershell
-.\scripts\run_dimension_compare.ps1
+.\MKSky\scripts\run_dimension_compare.ps1
 ```
