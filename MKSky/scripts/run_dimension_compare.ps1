@@ -6,7 +6,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent $PSScriptRoot
 $exe = Join-Path $projectRoot 'bin\Release\MKSkyBenchmark.exe'
 $resultRoot = Join-Path $projectRoot 'results\dimension_6_16'
 $log = Join-Path $resultRoot 'dimension_compare.log'
@@ -24,7 +24,7 @@ foreach ($distribution in $distributions) {
         $complete = $false
         if (Test-Path -LiteralPath $csv) {
             $rows = @(Import-Csv -LiteralPath $csv)
-            $complete = $rows.Count -eq 2 -and
+            $complete = $rows.Count -eq 3 -and
                 @($rows | Where-Object { $_.verification -notlike 'PASS:*' }).Count -eq 0
         }
         if ($complete) {
@@ -35,7 +35,7 @@ foreach ($distribution in $distributions) {
         "START distribution=$distribution dim=$dim n=$PointCount" | Tee-Object -FilePath $log -Append
         & $exe --n $PointCount --dim $dim --distribution $distribution --seed $Seed `
             --warmup $WarmupRuns --repeat $MeasuredRuns `
-            --algorithms optimized,current --csv $csv 2>&1 |
+            --algorithms mksky,skycell,skyalign --csv $csv 2>&1 |
             Tee-Object -FilePath $log -Append
         if ($LASTEXITCODE -ne 0) {
             throw "Benchmark failed: distribution=$distribution dim=$dim exit=$LASTEXITCODE"

@@ -1,0 +1,22 @@
+# Visual Studio and CUDA build outputs
+.vs/
+bin/
+obj/
+x64/
+Debug/
+Release/
+
+# Machine-specific files
+*.user
+*.suo
+*.pdb
+*.ilk
+*.obj
+*.exe
+
+# Local agent/tool state
+.codex/
+
+# Generated benchmark output
+results/
+*.log

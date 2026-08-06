@@ -85,7 +85,7 @@ void print_usage() {
         << "  --mksky-compat-max-mb <count> block-group mask memory cap\n"
         << "  --mksky-signature-min-dim <d> dimension threshold for coordinate fields\n"
         << "  --algorithms <all|comma-separated names>\n"
-        << "       names: mksky,current,mkd,paper-mkd,mkd-legacy,grid-mkd,ablation-a,"
+        << "       names: mksky,mkd,paper-mkd,mkd-legacy,grid-mkd,ablation-a,"
            "ablation-b,ablation-c,adaptive,adaptive-mkd,mkd-flat,mkd-fixed,"
            "ablation-no-prune,ablation-no-prefix,sum-order,optimized,projection-bound,"
            "projection-3d,projection-scan,projection-cycle,projection-qcycle,skycell,skyalign,cpu-sfs\n"
@@ -203,7 +203,6 @@ using Runner = std::function<AlgorithmResult(const std::vector<MyDataPoint>&, co
 
 Runner find_runner(const std::string& name) {
     if (name == "mksky") return run_projection_bound_mksky;
-    if (name == "current") return run_current_mksky;
     if (name == "adaptive") return run_adaptive_mksky;
     if (name == "mkd") return run_grid_mkd_mksky;
     if (name == "paper-mkd") return run_paper_mksky;

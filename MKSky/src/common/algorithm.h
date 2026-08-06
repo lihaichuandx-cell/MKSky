@@ -30,8 +30,6 @@ struct AlgorithmResult {
     unsigned long long exact_point_checks = 0;
 };
 
-AlgorithmResult run_current_mksky(const std::vector<MyDataPoint>& points,
-                                  const AlgorithmConfig& config);
 AlgorithmResult run_adaptive_mksky(const std::vector<MyDataPoint>& points,
                                    const AlgorithmConfig& config);
 AlgorithmResult run_mkd_mksky(const std::vector<MyDataPoint>& points,
