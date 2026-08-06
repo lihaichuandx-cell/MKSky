@@ -1,99 +1,124 @@
-```markdown
-# MKSky: A GPU Parallel Skyline Algorithm Based on Morton KD-Tree
+# MKSky
 
-This repository contains the official implementation for the paper: **"MKSky: A GPU Parallel Skyline Algorithm Based on Morton KD-Tree"**. 
+Source code and reproducibility materials for the manuscript:
 
-## 📖 Introduction
+> **MKSky: An Exact GPU-Parallel Skyline Algorithm with Morton-Ordered Implicit Partitioning**  
+> Haichuan Li and Zhongbo Wu  
+> Submitted to *The Journal of Supercomputing*
 
-Skyline queries play a pivotal role in multi-criteria decision-making. However, existing GPU-parallel algorithms often encounter performance bottlenecks when processing high-dimensional anti-correlated data, primarily due to grid explosion (e.g., in the SkyCell algorithm) or memory access divergence. 
+MKSky is an exact GPU-parallel skyline algorithm for large multidimensional datasets. Its objective is not merely to parallelize point-pair dominance tests, but to reduce the amount of exact verification that must be performed. Quantized Morton codes and block summaries are used only for data organization and safe exclusion; final skyline membership is always determined by strict dominance tests on the original coordinates.
 
-To address these challenges, we propose **MKSky**, a novel parallel algorithm based on implicit spatial partitioning. 
+## Algorithm overview
 
-Key components of this framework include:
-* **Morton-order Implicit KD-partitioning (MKD):** Leverages Morton encoding to map high-dimensional space into a one-dimensional contiguous memory layout. It achieves equivalent spatial partitioning through a bitwise XOR mechanism with zero physical tree overhead.
-* **Double-level Chunk-Skipping SFS Engine:** Utilizes local absolute lower bounds to implement region-level pruning, thereby substantially reducing redundant point-to-point comparisons.
+The submission implementation combines four stages:
 
-Extensive experiments demonstrate that, under the same high-dimensional and large-scale benchmarks, MKSky achieves a speedup of up to approximately two orders of magnitude compared to baseline algorithms like SkyCell and SkyAlign.
+1. **Safe candidate reduction** using either a low-dimensional occupied-grid route or a real-pivot route.
+2. **Morton-ordered GPU layout** with quantization, 64-bit Morton encoding, radix sorting, and contiguous coordinate reordering.
+3. **Implicit interval partitioning** using endpoint-XOR boundaries, followed by exact intra-interval prefix filtering.
+4. **Hierarchical exact verification** using safe block lower bounds and conditional summaries before falling back to original-coordinate comparisons, including equal-code completion checks.
 
-## 📂 Project Structure
+The repository also contains controlled ablations, exact CPU references, CUDA comparison implementations, processed workbooks, raw measurements, and the script used to regenerate the manuscript figures.
 
-The project is structured as a Visual Studio solution. The core source code is located in the `jomyal` directory:
-
-```text
-.
-# MKSky: A GPU Parallel Skyline Algorithm Based on Morton KD-Tree
-
-This repository contains the official implementation for the paper: **"MKSky: A GPU Parallel Skyline Algorithm Based on Morton KD-Tree"**. 
-
-## 📖 Introduction
-
-Skyline queries play a pivotal role in multi-criteria decision-making. However, existing GPU-parallel algorithms often encounter performance bottlenecks when processing high-dimensional anti-correlated data, primarily due to grid explosion (e.g., in the SkyCell algorithm) or memory access divergence. 
-
-To address these challenges, we propose **MKSky**, a novel parallel algorithm based on implicit spatial partitioning. 
-
-Key components of this framework include:
-* **Morton-order Implicit KD-partitioning (MKD):** Leverages Morton encoding to map high-dimensional space into a one-dimensional contiguous memory layout. It achieves equivalent spatial partitioning through a bitwise XOR mechanism with zero physical tree overhead.
-* **Double-level Chunk-Skipping SFS Engine:** Utilizes local absolute lower bounds to implement region-level pruning, thereby substantially reducing redundant point-to-point comparisons.
-
-Extensive experiments demonstrate that, under the same high-dimensional and large-scale benchmarks, MKSky achieves a speedup of up to approximately two orders of magnitude compared to baseline algorithms like SkyCell and SkyAlign.
-
-## 📂 Project Structure
-
-The project is structured as a Visual Studio solution. The core source code is located in the `jomyal` directory:
+## Repository contents
 
 ```text
-.
-└── jomyal/
-    ├── common.h                  # Common definitions and data structures
-    ├── data_generator.h          # Synthetic dataset generator for different distributions (Independent, Correlated, Anti-correlated)
-    ├── gpu_brute_algorithm.h     # Baseline: GPU Brute-force scanning implementation
-    ├── hybrid_algorithm.cu       # Baseline: Hybrid algorithm implementation (CUDA)
-    ├── hybrid_algorithm.h        # Baseline: Hybrid algorithm header
-    ├── main.cu                   # Main entry point and experimental pipeline controller
-    ├── myal_algorithm.cu         # Proposed MKSky: Core CUDA implementation (Pre-pruning, Morton MKD, Chunk-Skipping)
-    ├── myal_algorithm.h          # Proposed MKSky: Header file
-    ├── skyalign_algorithm.cu     # Baseline: SkyAlign implementation (CUDA)
-    ├── skyalign_algorithm.h      # Baseline: SkyAlign header
-    ├── skycell_algorithm.cu      # Baseline: SkyCell implementation (CUDA)
-    ├── skycell_algorithm.h       # Baseline: SkyCell header
-    ├── jomyal.sln                # Visual Studio Solution file
-    ├── jomyal.vcxproj            # Visual Studio Project file
-    ├── jomyal.vcxproj.user       # Visual Studio User specific project settings
-    └── vc140.pdb                 # Program database for debugging
-
-
+code/                         Visual Studio/CUDA benchmark project
+  src/                        MKSky, baselines, dataset generators, references
+  third_party/SkyCell/        Public 3D SkyCell source retained as an anchor
+  README.md                   Detailed build and command-line instructions
+  SUBMISSION_PROTOCOL.md      Frozen algorithms, generators, defaults, and reporting rules
+data/
+  raw_csv/                    Raw scalability, ablation, correctness, and sensitivity results
+  report_followup_20260723/   Follow-up validation and end-to-end measurements
+  workbooks/                  Processed workbooks used by the plotting script
+  edge_correctness_results.txt
+scripts/generate_paper_figures.py
+REPRODUCIBILITY_MAP.md        Manuscript figure/table to file mapping
+FILE_MANIFEST.md              Included formats and excluded build artifacts
 ```
 
-*(Note: In the source code, the proposed MKSky algorithm is implemented under the `myal_algorithm` files).*
+The downloadable `MKSky_Online_Resource_1.zip` archive is a frozen copy of the complete source-and-data package.
 
-## 🛠️ Requirements
+## Experimental scope
 
-The project is developed using **C++** and **CUDA**.
+The paper evaluates three synthetic distributions (independent, correlated, and anticorrelated), dimensions from 3 to 16, and input sizes up to 30 million records. The package includes:
 
-* **OS:** Windows 11 (64-bit)
-* **IDE/Compiler:** Microsoft Visual Studio (compatible with `.sln` and `.vcxproj` files)
-* **CUDA Toolkit:** Version 12.x
-* **Hardware:** NVIDIA GPU. The algorithm is heavily optimized for modern GPU architectures (e.g., NVIDIA GeForce RTX 5070 laptop GPU).
+- raw CSV measurements for the main scalability matrices;
+- candidate-reduction, local-prefix, MKD-boundary, and block-summary ablations;
+- parameter-sensitivity and input-order checks;
+- 36 CPU-exact correctness configurations and six deterministic boundary datasets;
+- a single-threaded CPU-SFS reference;
+- device-resident and adapter-boundary timing measurements;
+- the processed workbooks used to generate all 15 manuscript figures.
 
-## 🚀 Quick Start
+Performance gains are input dependent. MKSky is most effective on large, candidate-rich inputs, particularly anticorrelated data. When few candidates remain, preprocessing and data-organization costs can reduce or eliminate the advantage. At high dimensionality, conditional summaries introduce an explicit memory-time trade-off.
 
-1. **Open the Project:**
-Double-click the `jomyal.sln` file to open the project in Microsoft Visual Studio.
-2. **Configure the Environment:**
-Ensure your Visual Studio is properly configured with the CUDA Toolkit (v12.x) build customizations.
-3. **Build and Run:**
-* Set `main.cu` as the entry point if necessary.
-* Build the solution in `Release` mode for optimal performance.
-* Run the executable.
+## Build environment used for the paper
 
+- Windows 11 x64
+- Visual Studio 2017, Visual C++ v141, `Release | x64`, `/O2`
+- CUDA Toolkit 10.0.130
+- NVIDIA driver 582.05
+- NVIDIA GeForce RTX 5070 Laptop GPU, 8151 MB
 
+Open `code/MKSky_new.sln` in Visual Studio and build `Release | x64`, or run the following command from a Visual Studio 2017 x64 Native Tools Command Prompt:
 
-The `main.cu` file serves as the pipeline controller. By modifying the parameters within, you can evaluate the algorithms across different dimensionalities (e.g., 3D to 8D) and data scales using the built-in `data_generator.h`.
-
-## 📧 Contact
-
-If you have any questions, please feel free to contact the authors or open an issue in this repository.
-
+```powershell
+MSBuild.exe .\code\MKSky_new.sln /m /t:Build /p:Configuration=Release /p:Platform=x64
 ```
 
+The executable is written to `code\bin\Release\MKSkyBenchmark.exe`. Build outputs are intentionally excluded from the repository package to avoid machine-specific paths and binary artifacts.
+
+## Representative run
+
+```powershell
+.\code\bin\Release\MKSkyBenchmark.exe `
+  --n 1000000 --dim 6 --distribution anti --seed 12345 `
+  --warmup 1 --repeat 3 `
+  --algorithms mksky,skycell,skyalign `
+  --csv results\anti_d6.csv
 ```
+
+Use `--dataset-policy legacy` for the main-paper generators. See `code/README.md` for all exposed sensitivity controls and verification options.
+
+## Timing definitions
+
+- `algorithm_avg_ms`: data-resident GPU algorithm time measured with CUDA events. It excludes data generation, file I/O, and process startup.
+- `end_to_end_avg_ms`: adapter-boundary time including host packing, device allocation, transfers, execution, result collection, and cleanup.
+- `device_memory_mb`: explicitly allocated, simultaneously live device workspace. CUDA context state, driver caches, and internal Thrust temporary storage are excluded.
+
+These metrics must not be mixed. The manuscript uses data-resident timing for its main GPU curves and reports adapter-boundary timing separately.
+
+## Recreate the manuscript figures
+
+Install Python with `matplotlib` and `openpyxl`, then run from the repository root:
+
+```powershell
+python .\scripts\generate_paper_figures.py figures data\workbooks panels
+```
+
+Figures 1-5 are explanatory diagrams drawn directly by the script. Figures 6-15 are generated from the included workbooks. See `REPRODUCIBILITY_MAP.md` for the exact source of every figure and experimental table.
+
+## Baseline disclosure
+
+- `SkyCell-G` is the generalized CUDA grid baseline supplied in this package. It is not presented as the original authors' general-dimensional executable.
+- `SkyAlign-R` is a CUDA reimplementation following SkyAlign Algorithm 1; author source was not publicly located.
+- The original public 3D SkyCell source is retained under `code/third_party/SkyCell/` as a separately reported correctness and timing anchor.
+
+The paper does not describe speedups against `SkyCell-G` as speedups against the original SkyCell authors' program. Full boundary and generator definitions are frozen in `code/SUBMISSION_PROTOCOL.md`.
+
+## Correctness and reproducibility
+
+For manageable inputs, every GPU result is compared with an independent exact CPU skyline index set. For large inputs, cross-algorithm agreement is retained as an additional check but is not described as independent ground truth. Raw measurements are preserved so that reported values, exclusions, and timing boundaries remain auditable.
+
+## Authors
+
+- **Haichuan Li** — algorithm design, implementation, experiments, analysis, and manuscript preparation
+- **Zhongbo Wu** — supervision, method revision, analysis, manuscript review, and project administration
+
+Corresponding author: Zhongbo Wu, `wuzhongbo@hbuas.edu.cn`  
+Department of Computer Engineering, Hubei University of Arts and Science, Xiangyang, Hubei 441053, China
+
+## Citation
+
+The manuscript is under review. Please cite the paper title and authors above when using this repository. A formal bibliographic entry will be added after publication.
